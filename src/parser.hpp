@@ -5,7 +5,7 @@
 using namespace std;
 
 
-vector< vector <int> > parseIn(string input);
+vector< vector <int> > parseIn(string input,int * numVariables, int * numClauses);
 void printFormula(vector< vector <int> > formula);
 void parseOut(vector< vector <int> > formula,int var,string output);
 

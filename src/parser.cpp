@@ -16,11 +16,11 @@ void printFormula(vector< vector <int> > formula){
 }
 
 
-vector< vector <int> > parseIn(string input){
+vector< vector <int> > parseIn(string input,int * numVariables, int * numClauses){
     string line,str1,str2;
     ifstream cnf;
     char type;
-    int numVar,numClauses;
+    int numVariablesAux,numClausesAux;
     int i,num;
     vector <int> vecAux;
 
@@ -47,7 +47,9 @@ vector< vector <int> > parseIn(string input){
           //comment line
       }else if(type == 'p'){
         //problem line
-        cnf >> str2 >> numVar >> numClauses;
+        cnf >> str2 >> numVariablesAux >> numClausesAux;
+        *numVariables = numVariablesAux;
+        *numClauses = numClausesAux;
         break;
       }
     }
