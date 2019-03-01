@@ -74,3 +74,82 @@ vector< vector <int> > genClausesSatFlip(vector<int> assignment,vector< vector <
 
 
 }
+
+int getIndex(int i, int j, int k){
+  //i vai de 1 a n
+  //j vai de 1 a k
+
+  return k * (i - 1) + (j - 1);
+
+}
+
+int valueVar(int var, vector<int> assignment){
+  if(assignment[var] == 0){
+    return (-1 * var);
+  }else{
+    return var;
+  }
+
+}
+
+vector< vector <int> > genClausesSatFlipCounter(vector<int> assignment,vector< vector <int> > formula,int k,int* var){
+  vector<int> auxClause;
+  unsigned int i,j;
+  int oldClausesNum;
+  int newClausesNum;
+  //gen clauses
+  //clause 1
+  oldClausesNum = formula.size();
+
+  auxClause.push_back(valueVar(1,assignment));
+  auxClause.push_back(*var + 1 + getIndex(1,1,k));
+
+  formula.push_back(auxClause);
+
+  //clase 2
+  for(j = 2; j<= k;j++){
+    auxClause.clear();
+    auxClause.push_back(-1 * (*var + 1 + getIndex(1,j,k)));
+    formula.push_back(auxClause);
+  }
+
+  //clause 3
+
+  for(i = 2;i < *var;i++){
+    auxClause.clear();
+    auxClause.push_back(valueVar(i,assignment));
+    auxClause.push_back(*var + 1 + getIndex(i,1,k));
+    formula.push_back(auxClause);
+    auxClause.clear();
+    auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,1,k)));
+    auxClause.push_back(*var + 1 + getIndex(i,1,k));
+    formula.push_back(auxClause);
+    for(j = 2;j<=k;j++){
+      auxClause.clear();
+      auxClause.push_back(valueVar(i,assignment));
+      auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,j-1,k)));
+      auxClause.push_back(*var + 1 + getIndex(i,j,k));
+      formula.push_back(auxClause);
+      auxClause.clear();
+      auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,j,k)));
+      auxClause.push_back(*var + 1 + getIndex(i,j,k));
+      formula.push_back(auxClause);
+    }
+    auxClause.clear();
+    auxClause.push_back(valueVar(i,assignment));
+    auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,k,k)));
+    formula.push_back(auxClause);
+  }
+  auxClause.clear();
+  auxClause.push_back(valueVar(*var,assignment));
+  auxClause.push_back(-1 * (*var + 1 + getIndex(*var - 1,k,k)));
+  formula.push_back(auxClause);
+
+  newClausesNum = formula.size();
+
+  cout << "clauses antes: " << oldClausesNum << " clauses depois: " << newClausesNum << endl;
+  cout << "variaveis antes: " << *var << " variaveis depois: " << (*var + (*var * k) - k) << endl;
+  *var = *var + (*var * k) - k;
+
+  return formula;
+}

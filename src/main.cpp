@@ -25,7 +25,8 @@ int main(int argc, char** argv){
   formula = parseIn(dimacs,&numVariables,&numClauses);
 
   assignment = genAssignment(numVariables);
-  formulaFlip = genClausesSatFlip(assignment, formula, k,numVariables);
+  //formulaFlip = genClausesSatFlip(assignment, formula, k,numVariables);
+  formulaFlip = genClausesSatFlipCounter( assignment, formula, k,&numVariables);
 
   string outName("outputs/outFlip");
 
