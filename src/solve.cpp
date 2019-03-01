@@ -147,9 +147,216 @@ vector< vector <int> > genClausesSatFlipCounter(vector<int> assignment,vector< v
 
   newClausesNum = formula.size();
 
-  cout << "clauses antes: " << oldClausesNum << " clauses depois: " << newClausesNum << endl;
-  cout << "variaveis antes: " << *var << " variaveis depois: " << (*var + (*var * k) - k) << endl;
+  //cout << "clauses antes: " << oldClausesNum << " clauses depois: " << newClausesNum << endl;
+  //cout << "variaveis antes: " << *var << " variaveis depois: " << (*var + (*var * k) - k) << endl;
   *var = *var + (*var * k) - k;
+
+  return formula;
+}
+
+
+
+
+
+int getNumClausesTrue(vector< vector <int> > formula, vector<int> assignment){
+  int result = 0;
+  unsigned int i,j;
+  vector<int> clause;
+  int flag;
+
+  for(i = 0; i<formula.size();i++){
+      clause = formula[i];
+      flag = 0;
+      for(j = 0;j<clause.size();j++){
+          if(clause[j] > 0 && assignment[abs(clause[j])] == 1){
+              flag++;
+              break;
+          }
+          if(clause[j] < 0 && assignment[abs(clause[j])] == 0){
+              flag++;
+              break;
+          }
+      }
+      if(flag){
+        result++;
+      }
+  }
+  return result;
+
+}
+
+
+vector< vector <int> > genClausesMaxSatFlipCounter(vector<int> assignment,vector< vector <int> > formula,int k,int* var){
+  vector<int> auxClause;
+  unsigned int i,j;
+  int oldClausesNum;
+  int newClausesNum;
+  int clausesTrue,maxClausesFalse;
+  int addedClausesMax,addedClausesFlip;
+  int numClausesAux;
+
+  clausesTrue = getNumClausesTrue(formula,assignment);
+  maxClausesFalse = formula.size() - clausesTrue - 1;
+
+  //cout << "clausulas ja satifeitas: " << clausesTrue << endl;
+  //cout << "max de clausulas falsas na instancia: " << maxClausesFalse << endl;
+
+
+  vector< vector <int> > clausesFlipRestriction;
+  vector< vector <int> > clausesMaxRestriction;
+
+  //cout << "fazendo clauses constraint flip" << endl;
+
+  //gen clauses
+  //clause 1
+  oldClausesNum = formula.size();
+
+  auxClause.push_back(valueVar(1,assignment));
+  auxClause.push_back(*var + 1 + getIndex(1,1,k));
+
+  clausesFlipRestriction.push_back(auxClause);
+
+  //clase 2
+  for(j = 2; j<= k;j++){
+    auxClause.clear();
+    auxClause.push_back(-1 * (*var + 1 + getIndex(1,j,k)));
+    clausesFlipRestriction.push_back(auxClause);
+  }
+
+  //clause 3
+
+  for(i = 2;i < *var;i++){
+    auxClause.clear();
+    auxClause.push_back(valueVar(i,assignment));
+    auxClause.push_back(*var + 1 + getIndex(i,1,k));
+    clausesFlipRestriction.push_back(auxClause);
+    auxClause.clear();
+    auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,1,k)));
+    auxClause.push_back(*var + 1 + getIndex(i,1,k));
+    clausesFlipRestriction.push_back(auxClause);
+    for(j = 2;j<=k;j++){
+      auxClause.clear();
+      auxClause.push_back(valueVar(i,assignment));
+      auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,j-1,k)));
+      auxClause.push_back(*var + 1 + getIndex(i,j,k));
+      clausesFlipRestriction.push_back(auxClause);
+      auxClause.clear();
+      auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,j,k)));
+      auxClause.push_back(*var + 1 + getIndex(i,j,k));
+      clausesFlipRestriction.push_back(auxClause);
+    }
+    auxClause.clear();
+    auxClause.push_back(valueVar(i,assignment));
+    auxClause.push_back(-1 * (*var + 1 + getIndex(i - 1,k,k)));
+    clausesFlipRestriction.push_back(auxClause);
+  }
+  auxClause.clear();
+  auxClause.push_back(valueVar(*var,assignment));
+  auxClause.push_back(-1 * (*var + 1 + getIndex(*var - 1,k,k)));
+  clausesFlipRestriction.push_back(auxClause);
+
+  addedClausesFlip = clausesFlipRestriction.size();
+
+  //*************************************************************
+  //contruct max restrictions
+  numClausesAux = 0;
+
+  //cout << "fazendo clauses constraint max" << endl;
+
+  int offset = (*var + (*var * k) - k) + 1;
+
+  int n = formula.size();
+  int k2 = maxClausesFalse;
+
+  auxClause.clear();
+  auxClause = formula[0];
+  auxClause.push_back(offset + getIndex(1,1,k2));
+
+  clausesMaxRestriction.push_back(auxClause);
+  numClausesAux++;
+
+  //clase 2
+  for(j = 2; j<= k2;j++){
+    auxClause.clear();
+    auxClause.push_back(-1 * (offset + getIndex(1,j,k2)));
+    clausesMaxRestriction.push_back(auxClause);
+    numClausesAux++;
+
+    //cout << "1-> " << numClausesAux << endl;
+  }
+
+  //clause 3
+
+  for(i = 2;i < n;i++){
+    auxClause.clear();
+    //cout << "aqui i = " << i << endl;
+    auxClause = formula[i - 1];
+    //cout << "aqui2" << endl;
+    auxClause.push_back(offset + getIndex(i,1,k2));
+    clausesMaxRestriction.push_back(auxClause);
+    numClausesAux++;
+    //cout << "2-> " << numClausesAux << endl;
+
+
+
+
+    auxClause.clear();
+    auxClause.push_back(-1 * (offset + getIndex(i - 1,1,k2)));
+    auxClause.push_back(offset + getIndex(i,1,k2));
+    clausesMaxRestriction.push_back(auxClause);
+    numClausesAux++;
+
+    //cout << "3-> " << numClausesAux << endl;
+    for(j = 2;j<=k2;j++){
+      auxClause.clear();
+      auxClause = formula[i - 1];
+      auxClause.push_back(-1 * (offset + getIndex(i - 1,j-1,k2)));
+      auxClause.push_back(offset + getIndex(i,j,k2));
+      clausesMaxRestriction.push_back(auxClause);
+      numClausesAux++;
+      //cout << "4-> " << numClausesAux << endl;
+
+      auxClause.clear();
+      auxClause.push_back(-1 * (offset + getIndex(i - 1,j,k2)));
+      auxClause.push_back(offset + getIndex(i,j,k2));
+      clausesMaxRestriction.push_back(auxClause);
+      numClausesAux++;
+
+      //cout << "5-> " << numClausesAux << endl;
+    }
+    auxClause.clear();
+    auxClause = formula[i - 1];
+    auxClause.push_back(-1 * (offset + getIndex(i - 1,k2,k2)));
+    clausesMaxRestriction.push_back(auxClause);
+    numClausesAux++;
+    //cout << "6-> " << numClausesAux << endl;
+
+  }
+  //cout << "aqui3" << endl;
+  auxClause.clear();
+  auxClause = formula[n - 1];
+  auxClause.push_back(-1 * (offset + getIndex(n - 1,k2,k2)));
+  clausesMaxRestriction.push_back(auxClause);
+  numClausesAux++;
+  //cout << "7-> " << numClausesAux << endl;
+
+
+  addedClausesMax = clausesMaxRestriction.size();
+
+
+  //end max restrictions
+  //*************************************************************
+
+  //cout << "clauses antes: " << oldClausesNum << " clauses depois: " << (addedClausesMax + addedClausesFlip) << endl;
+  //cout << "variaveis antes: " << *var << " variaveis depois: " << ((*var + (*var * k) - k) + (n * k2) - k2) << endl;
+  *var = ((*var + (*var * k) - k) + (n * k2) - k2);
+
+
+  //cout << "ajeitando formula final" << endl;
+  //ajeitar formula final
+  formula.clear();
+  formula = clausesFlipRestriction;
+  formula.insert(end(formula), begin(clausesMaxRestriction), end(clausesMaxRestriction));
 
   return formula;
 }
